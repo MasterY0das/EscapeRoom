@@ -55,11 +55,13 @@ public class EscapeRoom
     
     if (game.isGameOver()) {
       if (command.equals("quit") || command.equals("q")) {
+        System.out.println("Final score: " + score);
         System.out.println("Final points: " + points);
         System.out.println("Total steps: " + game.getSteps());
         play = false;
         System.exit(0);
       } else if (command.equals("replay")) {
+        System.out.println("Player score: " + score);
         System.out.println("Player steps: " + game.getSteps());
         int replayBonus = game.replay();
         score = 0 + replayBonus;
@@ -169,7 +171,6 @@ public class EscapeRoom
         System.out.println("Congratulations! You escaped Snape's dungeon!");
         System.out.println(playerHouse + " has triumphed once again!");
         System.out.println("Final score: " + score);
-        System.out.println("Final points: " + points);
         System.out.println("Total steps: " + game.getSteps());
         System.out.println("-----------------------------------------------------------");
         play = false;
@@ -186,7 +187,7 @@ public class EscapeRoom
       System.out.println("Player score: " + score);
       System.out.println("Player steps: " + game.getSteps());
       int replayBonus = game.replay();
-      score = replayBonus;
+      score = 0 + replayBonus;
       points = 0;
       game.updateScore(score);
       game.resetGameOver();
