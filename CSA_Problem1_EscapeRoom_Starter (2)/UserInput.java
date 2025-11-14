@@ -46,7 +46,9 @@ import java.util.Scanner;
     public static String getLine()
     {
         Scanner s = new Scanner(System.in);
-        return s.nextLine();
+        String line = s.nextLine();
+        s.close();
+        return line;
     }
 
 

@@ -1,70 +1,38 @@
-/*
-* Problem 1: Escape Room
-* 
-* V1.0
-* 10/10/2019
-* Copyright(c) 2019 PLTW to present. All rights reserved
-*/
-
-/**
- * Create an escape room game where the player must navigate
- * to the other side of the screen in the fewest steps, while
- * avoiding obstacles and collecting prizes.
- */
 public class EscapeRoom
 {
 
-      // describe the game with brief welcome message
-      // determine the size (length and width) a player must move to stay within the grid markings
-      // Allow game commands:
-      //    right, left, up, down: if you try to go off grid or bump into wall, score decreases
-      //    jump over 1 space: you cannot jump over walls
-      //    if you land on a trap, spring a trap to increase score: you must first check if there is a trap, if none exists, penalty
-      //    pick up prize: score increases, if there is no prize, penalty
-      //    help: display all possible commands
-      //    end: reach the far right wall, score increase, game ends, if game ended without reaching far right wall, penalty
-      //    replay: shows number of player steps and resets the board, you or another player can play the same board
-      // Note that you must adjust the score with any method that returns a score
-      // Optional: create a custom image for your player use the file player.png on disk
-
   private static final int SPACE_SIZE = 60;
   private static int score = 0;
+  private static int points = 0;
   private static GameGUI game;
   private static boolean play = true;
+  private static String playerHouse = "";
+  private static java.util.Scanner scanner = new java.util.Scanner(System.in);
 
   public static void main(String[] args) 
   {      
-    // welcome message
-    System.out.println("Welcome to EscapeRoom!");
-    System.out.println("Get to the other side of the room, avoiding walls and invisible traps,");
-    System.out.println("pick up all the prizes.\n");
+    System.out.println("-----------------------------------------------------------");
+    System.out.println(" Welcome to Hogwarts: Escape from Snape's Dungeon!");
+    System.out.println("-----------------------------------------------------------");
+    System.out.println("\nYou've been caught by Professor Snape and locked in his dungeon!");
+    System.out.println("Collect all Amortentia ingredients to escape!");
+    System.out.println("But beware - Snape has set traps throughout the dungeon...\n");
     
-    game = new GameGUI();
+    selectHouse();
+    
+    game = new GameGUI(playerHouse);
     game.createBoard();
-    
-    // Set up command handler
-    game.setCommandHandler(new GameGUI.CommandHandler() {
-      public void handleCommand(String command) {
-        processCommand(command);
-      }
-    });
-    
-    // Update initial score
     game.updateScore(score);
     
-    // Keep the program running
     while (play) {
-      try {
-        Thread.sleep(100);
-      } catch (InterruptedException e) {
-        break;
+      System.out.print("> ");
+      String command = scanner.nextLine().trim().toLowerCase();
+      if (!command.isEmpty()) {
+        processCommand(command);
       }
     }
   }
   
-  /**
-   * Process a user command and update the game state
-   */
   private static void processCommand(String command) {
     String[] validCommands = { "right", "left", "up", "down", "r", "l", "u", "d",
         "jr", "jl", "ju", "jd", "jumpright", "jumpleft", "jumpup", "jumpdown",
@@ -80,111 +48,231 @@ public class EscapeRoom
     
     if (!isValid) {
       System.out.println("Invalid command: " + command);
-      score -= 2; // Small penalty for invalid command
+      score -= 2;
       game.updateScore(score);
       return;
     }
     
-    // Handle movement commands
+    if (game.isGameOver()) {
+      if (command.equals("quit") || command.equals("q")) {
+        System.out.println("Final points: " + points);
+        System.out.println("Total steps: " + game.getSteps());
+        play = false;
+        System.exit(0);
+      } else if (command.equals("replay")) {
+        System.out.println("Player steps: " + game.getSteps());
+        int replayBonus = game.replay();
+        score = 0 + replayBonus;
+        points = 0;
+        game.updateScore(score);
+        game.resetGameOver();
+        System.out.println("Game reset! Starting new game...");
+        return;
+      } else {
+        System.out.println("GAME OVER! Snape has caught you!");
+        System.out.println("You can quit (q) or replay (replay)");
+        return;
+      }
+    }
+    
     if (command.equals("right") || command.equals("r")) {
-      score += game.movePlayer(SPACE_SIZE, 0);
+      int result = game.movePlayer(SPACE_SIZE, 0);
+      score += result;
+      score++;
+      if (result == 0) {
+        points++;
+        System.out.println("Points: " + points);
+      }
     }
     else if (command.equals("left") || command.equals("l")) {
-      score += game.movePlayer(-SPACE_SIZE, 0);
+      int result = game.movePlayer(-SPACE_SIZE, 0);
+      score += result;
+      score++;
+      if (result == 0) {
+        points++;
+        System.out.println("Points: " + points);
+      }
     }
     else if (command.equals("up") || command.equals("u")) {
-      score += game.movePlayer(0, -SPACE_SIZE);
+      int result = game.movePlayer(0, -SPACE_SIZE);
+      score += result;
+      score++;
+      if (result == 0) {
+        points++;
+        System.out.println("Points: " + points);
+      }
     }
     else if (command.equals("down") || command.equals("d")) {
-      score += game.movePlayer(0, SPACE_SIZE);
+      int result = game.movePlayer(0, SPACE_SIZE);
+      score += result;
+      score++;
+      if (result == 0) {
+        points++;
+        System.out.println("Points: " + points);
+      }
     }
-    // Handle jump commands
     else if (command.equals("jr") || command.equals("jumpright")) {
-      score += game.jumpPlayer(2 * SPACE_SIZE, 0);
+      int result = game.jumpPlayer(2 * SPACE_SIZE, 0);
+      score += result;
+      if (result == -1000) {
+        return;
+      }
+      score++;
+      if (result == 0) {
+        points++;
+        System.out.println("Points: " + points);
+      }
     }
     else if (command.equals("jl") || command.equals("jumpleft")) {
-      score += game.jumpPlayer(-2 * SPACE_SIZE, 0);
+      int result = game.jumpPlayer(-2 * SPACE_SIZE, 0);
+      score += result;
+      if (result == -1000) {
+        return;
+      }
+      score++;
+      if (result == 0) {
+        points++;
+        System.out.println("Points: " + points);
+      }
     }
     else if (command.equals("ju") || command.equals("jumpup")) {
-      score += game.jumpPlayer(0, -2 * SPACE_SIZE);
+      int result = game.jumpPlayer(0, -2 * SPACE_SIZE);
+      score += result;
+      if (result == -1000) {
+        return;
+      }
+      score++;
+      if (result == 0) {
+        points++;
+        System.out.println("Points: " + points);
+      }
     }
     else if (command.equals("jd") || command.equals("jumpdown")) {
-      score += game.jumpPlayer(0, 2 * SPACE_SIZE);
+      int result = game.jumpPlayer(0, 2 * SPACE_SIZE);
+      score += result;
+      if (result == -1000) {
+        return;
+      }
+      score++;
+      if (result == 0) {
+        points++;
+        System.out.println("Points: " + points);
+      }
     }
-    // Handle pickup command
-    else if (command.equals("pickup") || command.equals("p")) {
-      score += game.pickupPrize();
+    else if (command.equals("pickup") || command.equals("p")) { 
+      int result = game.pickupPrize();
+      score += result;
+      
+      if (game.getCoinsCollected() == game.getTotalCoins()) {
+        System.out.println("-----------------------------------------------------------");
+        System.out.println("All Amortentia potion ingredients collected!");
+        System.out.println("Congratulations! You escaped Snape's dungeon!");
+        System.out.println(playerHouse + " has triumphed once again!");
+        System.out.println("Final score: " + score);
+        System.out.println("Final points: " + points);
+        System.out.println("Total steps: " + game.getSteps());
+        System.out.println("-----------------------------------------------------------");
+        play = false;
+        System.exit(0);
+      }
     }
-    // Handle spring trap command
     else if (command.equals("spring") || command.equals("s")) {
-      // Check for trap in each direction
-      boolean trapFound = false;
-      if (game.isTrap(SPACE_SIZE, 0)) {
-        score += game.springTrap(SPACE_SIZE, 0);
-        trapFound = true;
-      } else if (game.isTrap(-SPACE_SIZE, 0)) {
-        score += game.springTrap(-SPACE_SIZE, 0);
-        trapFound = true;
-      } else if (game.isTrap(0, SPACE_SIZE)) {
-        score += game.springTrap(0, SPACE_SIZE);
-        trapFound = true;
-      } else if (game.isTrap(0, -SPACE_SIZE)) {
-        score += game.springTrap(0, -SPACE_SIZE);
-        trapFound = true;
-      }
-      if (!trapFound) {
-        // No trap adjacent, penalty
-        score += game.springTrap(SPACE_SIZE, 0); // This will return penalty
-      }
+      score += game.springAdjacentTraps();
     }
-    // Handle help command
     else if (command.equals("help") || command.equals("?")) {
       printHelp();
     }
-    // Handle replay command
     else if (command.equals("replay")) {
+      System.out.println("Player score: " + score);
       System.out.println("Player steps: " + game.getSteps());
       int replayBonus = game.replay();
-      score = 0 + replayBonus; // Reset score to 0, then add replay bonus/penalty
+      score = replayBonus;
+      points = 0;
       game.updateScore(score);
+      game.resetGameOver();
+      System.out.println("The dungeon has been reset! Starting new game...");
     }
-    // Handle quit command
     else if (command.equals("quit") || command.equals("q")) {
       score += game.endGame();
+      System.out.println("\nYou have left Snape's dungeon.");
       System.out.println("Final score: " + score);
+      System.out.println("Final points: " + points);
       System.out.println("Total steps: " + game.getSteps());
+      System.out.println("Until we meet again, " + playerHouse + "!\n");
       play = false;
       System.exit(0);
     }
     
-    // Update score display
     game.updateScore(score);
   }
   
-  /**
-   * Print help message with all valid commands
-   */
+  private static void selectHouse() {
+    System.out.println("Which Hogwarts house are you from?");
+    System.out.println("1. Gryffindor (Gryffindor.png)");
+    System.out.println("2. Hufflepuff (Hufflepuff.png)");
+    System.out.println("3. Ravenclaw (Ravenclaw.png)");
+    System.out.println("4. Slytherin (Slytherin.png)");
+    System.out.print("Enter your choice (1-4): ");
+    
+    String choice = scanner.nextLine().trim();
+    
+    switch(choice) {
+      case "1":
+        playerHouse = "Gryffindor";
+        System.out.println("\nBrave Gryffindor! May your courage guide you through Snape's dungeon!");
+        break;
+      case "2":
+        playerHouse = "Hufflepuff";
+        System.out.println("\nLoyal Hufflepuff! Your determination will help you escape!");
+        break;
+      case "3":
+        playerHouse = "Ravenclaw";
+        System.out.println("\nWise Ravenclaw! Use your wit to outsmart Snape's traps!");
+        break;
+      case "4":
+        playerHouse = "Slytherin";
+        System.out.println("\nCunning Slytherin! Your ambition will lead you to freedom!");
+        break;
+      default:
+        playerHouse = "Gryffindor";
+        System.out.println("\nInvalid choice. Defaulting to Gryffindor!");
+        break;
+    }
+    System.out.println("Your house crest will be displayed as your player character.\n");
+  }
+  
+  public static String getPlayerHouse() {
+    return playerHouse;
+  }
+  
   private static void printHelp() {
-    System.out.println("\n=== ESCAPE ROOM COMMANDS ===");
-    System.out.println("Movement:");
-    System.out.println("  right, r    - Move right one space");
-    System.out.println("  left, l     - Move left one space");
-    System.out.println("  up, u       - Move up one space");
-    System.out.println("  down, d     - Move down one space");
+    System.out.println("\n-----------------------------------------------------------");
+    System.out.println(" HOGWARTS DUNGEON ESCAPE - COMMANDS");
+    System.out.println("-----------------------------------------------------------");
+    System.out.println("\nMovement:");
+    System.out.println("  right, r    - Move right one space (gains 1 point)");
+    System.out.println("  left, l     - Move left one space (gains 1 point)");
+    System.out.println("  up, u       - Move up one space (gains 1 point)");
+    System.out.println("  down, d     - Move down one space (gains 1 point)");
     System.out.println("\nJump (2 spaces):");
-    System.out.println("  jr, jumpright  - Jump right two spaces");
-    System.out.println("  jl, jumpleft   - Jump left two spaces");
-    System.out.println("  ju, jumpup     - Jump up two spaces");
-    System.out.println("  jd, jumpdown   - Jump down two spaces");
+    System.out.println("  jr, jumpright  - Jump right two spaces (gains 1 point)");
+    System.out.println("  jl, jumpleft   - Jump left two spaces (gains 1 point)");
+    System.out.println("  ju, jumpup     - Jump up two spaces (gains 1 point)");
+    System.out.println("  jd, jumpdown   - Jump down two spaces (gains 1 point)");
     System.out.println("\nActions:");
-    System.out.println("  pickup, p   - Pick up a prize at current location");
-    System.out.println("  spring, s   - Spring a trap or barrier adjacent to player");
-    System.out.println("\nNote: Rocks can be jumped over. Barriers block jumps but can be sprung.");
+    System.out.println("  pickup, p   - Pick up a Amortentia Potion ingredient");
+    System.out.println("  spring, s   - Disarm a trap or barrier adjacent to you");
+    System.out.println("\nGame Rules:");
+    System.out.println("  - You gain 1 point each time you move successfully");
+    System.out.println("  - Collect all potion ingredients to escape");
+    System.out.println("  - Cannot move into Snape's traps, but jumping into one ends the game!");
+    System.out.println("  - Hidden traps show 'ANOMALY DETECTED NEARBY' when nearby");
+    System.out.println("  - Rocks can be jumped over. Barriers block jumps but can be disarmed.");
     System.out.println("\nOther:");
     System.out.println("  help, ?     - Show this help message");
-    System.out.println("  replay     - Reset the board (shows steps)");
+    System.out.println("  replay     - Reset the dungeon (shows steps)");
     System.out.println("  quit, q    - End the game");
-    System.out.println("============================\n");
+    System.out.println("-----------------------------------------------------------\n");
   }
 }
 
