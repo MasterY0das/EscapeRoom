@@ -90,3 +90,7 @@ if (game.getCoinsCollected() == game.getTotalCoins()) {
 - Invalid command: -2 points
 - Game completion: Final score displayed
 
+## Demo
+![Demo](Recording%202025-11-14%20000900.gif)
+
+
